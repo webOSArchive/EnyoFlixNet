@@ -1,0 +1,10 @@
+{
+	"id": "com.yourdomain.enyoflixnet",
+	"version": "1.0.0",
+	"vendor": "My Company",
+	"type": "web",
+	"main": "index.html",
+	"title": "EnyoFlixnet",
+	"icon": "icon.png",
+	"uiRevision":2
+}
