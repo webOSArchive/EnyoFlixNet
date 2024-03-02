@@ -4,17 +4,17 @@ enyo.kind({
 	movieHost: "http://archive.org/download/",
 	detailsOpen: false,
 	components: [
-		{name: "flixnetGenres", kind: "WebService",  url: "https://flixnet.wosa.link/api/genres/",  onSuccess: "gotGenres",  onFailure: "failGenres"},
-		{name: "flixnetMovies", kind: "WebService",  url: "https://flixnet.wosa.link/api/movies/",  onSuccess: "gotMovies",  onFailure: "failMovies"},
+		{name: "flixnetGenres", kind: "WebService",  url: "http://flixnet.wosa.link/api/genres/",  onSuccess: "gotGenres",  onFailure: "failGenres"},
+		{name: "flixnetMovies", kind: "WebService",  url: "http://flixnet.wosa.link/api/movies/",  onSuccess: "gotMovies",  onFailure: "failMovies"},
 		{kind: "PageHeader", className: "enyo-toolbar", components: [
 			{content: "FlixNet", className: "toolbar-title"}
 		]},
-		{name: "slidingPane", kind: "SlidingPane", flex: 1, onSelectView: "slidingSelected", components: [
+		{name: "slidingPane", kind: "SlidingPane", multiViewMinWidth:"500", flex: 1, onSlideComplete: "slidingSelected", components: [
 			{name: "panelGenres", width: "240px", components: [
 				{kind: "Scroller", flex: 1, components: [
 					{name: "listGenres", kind: "VirtualRepeater", onSetupRow: "renderGenreItem",
 						components: [
-							{kind: "Item", className: "enyo-toolbar", layoutKind: "VFlexLayout", onclick: "genreSelect", components: [
+							{kind: "Item", className: "enyo-toolbar", tapHighlight:true, layoutKind: "VFlexLayout", onclick: "genreSelect", components: [
 								{name: "genreDescription", className: "toolbar-title"},
 								{name: "genreTitle", kind: "Divider"}
 							]}
@@ -39,14 +39,14 @@ enyo.kind({
 					{name: "btnPageUp", disabled:true, caption: "Next", onclick: "setWallpaper"}
 				]}
 			]},
-			{name: "panelDetails", showing:false, components: [
+			{name: "panelDetails", showing:false, dismissible: true, components: [
 				{kind: "Scroller", flex:1, components: [
 					{name: "movieFrame", className: "movie-backdrop-frame", components: [
 						{name: "movieBackdrop", className: "movie-backdrop", kind: "Image", src: "images/showtime.png", onerror:"backdropError" },
 					]},
 					{name: "detailTitle", className: "movie-detail-title", content: "Movie Title"},	
 					{name: "detailMeta", className: "movie-detail-meta", content: "Rating, Runtime"},
-					{name: "detailDescription", content: "Movie Description"}
+					{name: "detailDescription", content: "Movie Description", allowHtml: true}
 				]},
 				{kind: "Toolbar", components: [
 					{kind: "GrabButton"},
@@ -58,7 +58,11 @@ enyo.kind({
 	],
 	create: function() {
 		this.inherited(arguments);
-		this.genres = [];
+		this.genres = [ {
+			id: 0,
+			genre: "random",
+			count: 10
+		}];
 		this.movies = [];
 		this.currentMovie = null;
 		enyo.log("App started");
@@ -67,6 +71,7 @@ enyo.kind({
 	},
 	slidingSelected: function(inSender, inIndex) {
 		enyo.log("view: " + this.$.slidingPane.getViewName());
+	
 		if (this.$.slidingPane.getViewName() != "panelDetails") {
 			enyo.log("I should hide the details pane");
 			this.detailsOpen = false;
@@ -74,10 +79,23 @@ enyo.kind({
 		} else {
 			enyo.log("I should leave the details pane alone");
 		}
+	
+	},
+	selectNextView: function () {
+		if (window.innerWidth <= 500) {
+			var pane    = this.$.slidingPane;
+			var viewIdx = pane.getViewIndex();
+			if (viewIdx < pane.views.length - 1) {
+				viewIdx = viewIdx + 1;
+			} else {
+				return;	// we've selected the last available view.
+			}
+			pane.selectViewByIndex(viewIdx);
+		}
 	},
 	gotGenres: function(inSender, inResponse) {
 		//enyo.log("Genre response: " + JSON.stringify(inResponse));
-		this.genres = inResponse;
+		this.genres = this.genres.concat(inResponse);
   		this.$.listGenres.render();
 	},
 	renderGenreItem: function(inSender, inIndex) {
@@ -93,6 +111,7 @@ enyo.kind({
 		var queryUrl = this.$.flixnetMovies.getUrl() + "?genre=" + thisGenre.id;
 		this.$.flixnetMovies.setUrl(queryUrl);
 		this.$.flixnetMovies.call();
+		this.selectNextView();
 	},
 	gotMovies: function(inSender, inResponse) {
 		//enyo.log("Movies response: " + JSON.stringify(inResponse));
@@ -111,9 +130,9 @@ enyo.kind({
 		this.currentMovie = this.movies[inEvent.rowIndex];
 		this.$.detailTitle.setContent(this.currentMovie.title);
 		this.$.detailMeta.setContent("Rating: " + this.currentMovie.rating + "/10 | Runtime: " + this.currentMovie.runtime);
-		this.$.detailDescription.setContent(this.currentMovie.description);
+		this.$.detailDescription.setContent(this.currentMovie.description.replace("\n", "<br>"));
 		this.$.movieBackdrop.setSrc(this.currentMovie.backdrop.replace("https:", "http:"));
-		this.$.btnDownload.setDisabled(false);
+		this.$.btnWatch.setDisabled(false);
 		this.$.panelDetails.setShowing(true);
 		this.$.slidingPane.selectViewByName("panelDetails");
 		this.detailsOpen = true;
@@ -124,6 +143,10 @@ enyo.kind({
 	},
 	backdropError: function(inSender, inEvent) {
 		inSender.setSrc("images/showtime.png");
+	},
+	watchMovie: function(inSender, inEvent) {
+		var movieURL = this.movieHost + this.currentMovie.identifier + this.currentMovie.moviepath;
+		window.open(movieURL);
 	},
 	downloadMovie: function(inSender, inEvent) {
 		var movieURL = this.movieHost + this.currentMovie.identifier + this.currentMovie.moviepath;
