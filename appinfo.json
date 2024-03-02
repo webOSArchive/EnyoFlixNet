@@ -1,10 +1,10 @@
 {
-	"id": "com.yourdomain.enyoflixnet",
+	"id": "org.webosarchive.flixnet",
 	"version": "1.0.0",
-	"vendor": "My Company",
+	"vendor": "webOS Archive",
 	"type": "web",
 	"main": "index.html",
-	"title": "EnyoFlixnet",
+	"title": "Flixnet",
 	"icon": "icon.png",
 	"uiRevision":2
 }
