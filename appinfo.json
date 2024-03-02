@@ -6,5 +6,6 @@
 	"main": "index.html",
 	"title": "Flixnet",
 	"icon": "icon.png",
+	"splashicon": "icon-256.png",
 	"uiRevision":2
 }

@@ -76,7 +76,7 @@ enyo.kind({
 		}
 	},
 	gotGenres: function(inSender, inResponse) {
-		enyo.log("Genre response: " + JSON.stringify(inResponse));
+		//enyo.log("Genre response: " + JSON.stringify(inResponse));
 		this.genres = inResponse;
   		this.$.listGenres.render();
 	},
@@ -95,14 +95,14 @@ enyo.kind({
 		this.$.flixnetMovies.call();
 	},
 	gotMovies: function(inSender, inResponse) {
-		enyo.log("Movies response: " + JSON.stringify(inResponse));
+		//enyo.log("Movies response: " + JSON.stringify(inResponse));
 		this.movies = inResponse;
   		this.$.listMovies.render();
 	},
 	renderMovieItem: function(inSender, inIndex) {
 		var r = this.movies[inIndex];
 		if (r) {
-			this.$.moviePoster.setSrc(r.poster);
+			this.$.moviePoster.setSrc(r.poster.replace("https:", "http:"));
 			this.$.movieTitle.setContent(capitalizeFirstLetter(r.title));
 			return true;
 		}
@@ -110,9 +110,9 @@ enyo.kind({
 	movieSelect: function(inSender, inEvent) {
 		this.currentMovie = this.movies[inEvent.rowIndex];
 		this.$.detailTitle.setContent(this.currentMovie.title);
-		this.$.detailMeta.setContent(this.currentMovie.rating + "/10 | Runtime: " + this.currentMovie.runtime);
+		this.$.detailMeta.setContent("Rating: " + this.currentMovie.rating + "/10 | Runtime: " + this.currentMovie.runtime);
 		this.$.detailDescription.setContent(this.currentMovie.description);
-		this.$.movieBackdrop.setSrc(this.currentMovie.backdrop);
+		this.$.movieBackdrop.setSrc(this.currentMovie.backdrop.replace("https:", "http:"));
 		this.$.btnDownload.setDisabled(false);
 		this.$.panelDetails.setShowing(true);
 		this.$.slidingPane.selectViewByName("panelDetails");
